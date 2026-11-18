@@ -1,5 +1,5 @@
-const V = 'dali-mwltbirw';
-const FILES = ["./","icon-180.png","icon-512.png","index.html","itinerary.pdf","leaflet.js","manifest.webmanifest","map.html","vault/1.bin","vault/2.bin","vault/3.bin","vault/4.bin","vault/5.bin","vault/6.bin","vault/7.bin","vault/index.bin","vault/meta.json"];
+const V = 'dali-mwltlql7';
+const FILES = ["./","icon-180.png","icon-512.png","index.html","itinerary.pdf","leaflet.js","manifest.webmanifest","map.html","vault/1.bin","vault/2.bin","vault/3.bin","vault/4.bin","vault/5.bin","vault/6.bin","vault/7.bin","vault/8.bin","vault/9.bin","vault/index.bin","vault/meta.json"];
 self.addEventListener('install', e => { e.waitUntil(caches.open(V).then(c => c.addAll(FILES)).then(() => self.skipWaiting())); });
 self.addEventListener('activate', e => { e.waitUntil(caches.keys().then(ks => Promise.all(ks.filter(k => k !== V).map(k => caches.delete(k)))).then(() => self.clients.claim())); });
 self.addEventListener('fetch', e => {

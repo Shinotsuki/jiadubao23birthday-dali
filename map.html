@@ -1482,6 +1482,36 @@ document.addEventListener('click', e => {
 }, true);
 </script>
 
-<a href="./" class="home-fab" aria-label="回首页">🏠</a>
-<style>.home-fab{position:fixed;left:calc(12px + env(safe-area-inset-left));top:calc(12px + env(safe-area-inset-top));z-index:10000;width:40px;height:40px;border-radius:50%;background:rgba(255,255,255,.94);box-shadow:0 2px 10px rgba(0,0,0,.2);display:flex;align-items:center;justify-content:center;font-size:19px;text-decoration:none}</style>
-<script>(function(){var m=location.hash.match(/^#d(\d)$/);if(m&&typeof go==='function')addEventListener('load',function(){setTimeout(function(){map.invalidateSize();go(+m[1]);},250);});})();</script>
+<div class="corner"><a href="./" class="home-fab" aria-label="回首页">🏠</a><span class="daypill" id="daypill"></span></div>
+<style>
+.corner{position:fixed;left:calc(12px + env(safe-area-inset-left));top:calc(12px + env(safe-area-inset-top));z-index:10000;display:flex;align-items:center;gap:8px;pointer-events:none}
+.corner>*{pointer-events:auto}
+.home-fab{width:40px;height:40px;border-radius:50%;background:rgba(255,255,255,.94);box-shadow:0 2px 10px rgba(0,0,0,.2);display:flex;align-items:center;justify-content:center;font-size:19px;text-decoration:none}
+.daypill{font:600 13px -apple-system,"PingFang SC",sans-serif;color:#1d2a3a;background:rgba(255,255,255,.94);box-shadow:0 2px 10px rgba(0,0,0,.2);border-radius:99px;padding:8px 12px;white-space:nowrap}
+.daypill:empty{display:none}
+.tl-item.now>*:not(.tl-dot){box-shadow:0 0 0 2px var(--accent, #007aff)}
+.tl-item .nowtag{display:inline-block;font:700 11px -apple-system,sans-serif;color:#fff;background:var(--accent,#007aff);border-radius:6px;padding:2px 6px;margin-bottom:6px}
+</style>
+<script>
+(function(){
+  var start=new Date(2026,10,19), n=new Date(), t=new Date(n.getFullYear(),n.getMonth(),n.getDate());
+  var idx=Math.round((t-start)/864e5), last=5;      // 0 = 11/19 … 5 = 11/24
+  var inTrip=idx>=0&&idx<=last, pill=document.getElementById('daypill');
+  if(inTrip){ var left=last-idx; pill.textContent='第 '+(idx+1)+' 天 · '+(left?'距离离开还有 '+left+' 天':'今天回家'); }
+  else if(idx<0) pill.textContent='还有 '+(-idx)+' 天出发';
+  var m=location.hash.match(/^#d(\d)$/), target=m?+m[1]:(inTrip?idx+1:null);
+  function mark(){
+    if(!inTrip||cur!==idx+1) return;
+    var items=[].slice.call(document.querySelectorAll('#content .timeline')[0]?.querySelectorAll('.tl-item')||[]);
+    var mins=n.getHours()*60+n.getMinutes(), pick=null;
+    var tag='现在'; items.forEach(function(el){ var mm=(el.innerText.match(/(\d{1,2}):(\d{2})/)||[]); if(mm[1]&&(+mm[1])*60+(+mm[2])<=mins+30){ pick=el; tag=((+mm[1])*60+(+mm[2])>mins)?'接下来':'现在'; } });
+    if(!pick) pick=items[0];
+    if(!pick) return;
+    pick.classList.add('now');
+    var card=pick.querySelector(':scope > :not(.tl-dot)'); if(card) card.insertAdjacentHTML('afterbegin','<div class="nowtag">'+tag+'</div>');
+    setTimeout(function(){ var hb=tabsEl.getBoundingClientRect().bottom; var sc=contentEl.scrollHeight>contentEl.clientHeight+4&&/(auto|scroll)/.test(getComputedStyle(contentEl).overflowY); var dy=pick.getBoundingClientRect().top-(sc?contentEl.getBoundingClientRect().top:hb)-12; if(sc) contentEl.scrollBy({top:dy,behavior:'smooth'}); else window.scrollBy({top:dy,behavior:'smooth'}); },350);
+  }
+  var _go=go; go=function(i){ _go(i); mark(); };
+  if(target!==null) addEventListener('load',function(){ setTimeout(function(){ map.invalidateSize(); go(target); },250); });
+})();
+</script>

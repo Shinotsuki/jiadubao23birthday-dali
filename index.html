@@ -157,7 +157,15 @@ const dayIdx = Math.floor((new Date(now.getFullYear(), now.getMonth(), now.getDa
 const chip = $('#chip');
 let focus = null;
 if (dayIdx < 0) { chip.textContent = '还有 ' + (-dayIdx) + ' 天出发 ✈️'; focus = DAYS[0]; }
-else if (dayIdx < DAYS.length) { focus = DAYS[dayIdx]; chip.textContent = '第 ' + (dayIdx + 1) + ' 天 · ' + focus.label; }
+else if (dayIdx < DAYS.length) {
+  focus = DAYS[dayIdx];
+  const left = DAYS.length - 1 - dayIdx;
+  chip.textContent = '第 ' + (dayIdx + 1) + ' 天 · ' + (left ? '距离离开还有 ' + left + ' 天' : '今天回家');
+  // Fresh launch during the trip → straight to today's schedule. Coming back via 🏠 stays here.
+  let fresh = true;
+  try { fresh = !sessionStorage.getItem('seen'); sessionStorage.setItem('seen', '1'); } catch (e) {}
+  if (fresh && !location.hash) location.replace('map.html#d' + focus.id);
+}
 else chip.textContent = '旅行结束啦，欢迎回家';
 const list = d => '<ul class="tl">' + d.items.map(([t, n]) => '<li><span class="t">' + esc(t) + '</span><span>' + esc(n) + '</span></li>').join('') + '</ul>';
 if (focus) $('#today').innerHTML = '<h2>' + (dayIdx < 0 ? '第一天' : '今天') + '</h2><div class="card today" style="border-left:4px solid ' + focus.color + '"><h3>' + esc(focus.title) + '</h3><div class="d">' + esc(focus.date) + '</div>' + list(focus) + '<a class="btn" href="map.html#d' + focus.id + '">在地图里看 ›</a></div>';

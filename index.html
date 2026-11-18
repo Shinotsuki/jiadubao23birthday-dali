@@ -57,6 +57,10 @@ summary::after { content: "›"; margin-left: auto; color: var(--ink3); font-siz
 details[open] summary::after { transform: rotate(90deg); }
 .hint { margin-top: 16px; font-size: 13px; color: var(--ink2); background: #fff7e0; border: 1px solid #f2e1a8; border-radius: 14px; padding: 12px 14px; }
 @media (prefers-color-scheme: dark) { .hint { background: #2b2717; border-color: #4a4224; } }
+.letter { margin-top: 14px; background: linear-gradient(135deg, #fff1f4, #fff8ee); border: 1px solid #ffd6df; border-radius: 16px; padding: 14px 16px; }
+.letter .lt-h { font-weight: 700; color: #d6336c; font-size: 15px; }
+.letter .lt-b { margin-top: 6px; white-space: pre-wrap; font-size: 15px; line-height: 1.7; color: #4a3a40; }
+@media (prefers-color-scheme: dark) { .letter { background: linear-gradient(135deg, #2d1f24, #2b2519); border-color: #4d2c36; } .letter .lt-b { color: #f0dfe4; } }
 .foot { text-align: center; margin-top: 26px; font-size: 12px; color: var(--ink3); }
 /* vault */
 #vault { position: fixed; inset: 0; background: var(--bg); z-index: 50; overflow-y: auto; display: none;
@@ -83,13 +87,15 @@ details[open] summary::after { transform: rotate(90deg); }
   <span class="chip" id="chip"></span>
 </header>
 
+<div class="letter" id="letter" hidden><div class="lt-h">💌 崽崽的来信：</div><div class="lt-b" id="letter-body"></div></div>
+
 <div id="today"></div>
 
 <h2>常用</h2>
 <div class="grid">
   <a class="tile" href="map.html"><span class="e">🗺️</span><b>行程地图</b><span>每天的路线和店</span></a>
   <a class="tile" href="itinerary.pdf" target="_blank"><span class="e">📄</span><b>行程 PDF</b><span>完整版，可转发</span></a>
-  <button class="tile" data-vault="登机攻略"><span class="e">✈️</span><b>登机攻略</b><span>值机、安检、取行李</span></button>
+  <button class="tile" data-vault="登机攻略"><span class="e">✈️</span><b>登机攻略</b><span>出发前看一看</span></button>
   <button class="tile" data-vault=""><span class="e">🔒</span><b>私密资料</b><span>机票、订单截图</span></button>
 </div>
 
@@ -170,6 +176,23 @@ else chip.textContent = '旅行结束啦，欢迎回家';
 const list = d => '<ul class="tl">' + d.items.map(([t, n]) => '<li><span class="t">' + esc(t) + '</span><span>' + esc(n) + '</span></li>').join('') + '</ul>';
 if (focus) $('#today').innerHTML = '<h2>' + (dayIdx < 0 ? '第一天' : '今天') + '</h2><div class="card today" style="border-left:4px solid ' + focus.color + '"><h3>' + esc(focus.title) + '</h3><div class="d">' + esc(focus.date) + '</div>' + list(focus) + '<a class="btn" href="map.html#d' + focus.id + '">在地图里看 ›</a></div>';
 $('#days').innerHTML = DAYS.map(d => '<details><summary><span class="dot" style="background:' + d.color + '"></span><div><div class="s1">' + esc(d.title) + '</div><div class="s2">' + esc(d.date) + '</div></div></summary>' + list(d) + '<a class="btn" href="map.html#d' + d.id + '">在地图里看 ›</a></details>').join('');
+
+// ── 崽崽的来信 (letter.txt; lines starting with # are notes; "== 11/20 ==" starts a section shown only that day) ──
+(async () => {
+  try {
+    const raw = await (await fetch('letter.txt', { cache: 'no-store' })).text();
+    const lines = raw.replace(/\r/g, '').split('\n').filter(l => !/^\s*#/.test(l));
+    const md = (now.getMonth() + 1) + '/' + now.getDate();
+    let sec = null; const general = [], today = [];
+    for (const l of lines) {
+      const h = l.match(/^\s*==\s*(\d{1,2})\s*[\/.\-月]\s*(\d{1,2})\s*日?\s*==\s*$/);
+      if (h) { sec = (+h[1]) + '/' + (+h[2]); continue; }
+      if (sec === null) general.push(l); else if (sec === md) today.push(l);
+    }
+    const text = [general.join('\n').trim(), today.join('\n').trim()].filter(Boolean).join('\n\n');
+    if (text) { $('#letter-body').textContent = text; $('#letter').hidden = false; }
+  } catch (e) {}
+})();
 
 // ── navigation ──
 const ua = navigator.userAgent, isIOS = /iPhone|iPad|iPod/.test(ua), isAndroid = /Android/.test(ua);
